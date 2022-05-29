@@ -8,6 +8,9 @@ locales/
 dist/
 node_modules/
 
-gulp/config.js
+# To change in the future
+# gulp/config.js
 
+# zip and files
 SoundTouch-Chrome-Extension.zip
+SoundTouch-Chrome-Extension

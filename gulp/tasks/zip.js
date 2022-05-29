@@ -1,7 +1,7 @@
 const gulp = require('gulp');
 const zip = require('gulp-zip');
 
-const config = require('../config').deploy;
+const config = require('./../config').deploy;
 
 gulp.task('zip', () => {
     return gulp.src(config.packItems)
