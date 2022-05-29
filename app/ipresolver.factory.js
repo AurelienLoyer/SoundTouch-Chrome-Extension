@@ -20,11 +20,6 @@
 
       //bypass naive webrtc blocking using an iframe
       if(!RTCPeerConnection){
-        //NOTE: you need to have an iframe in the page right above the script tag
-        //
-        //<iframe id="iframe" sandbox="allow-same-origin" style="display: none"></iframe>
-        //<script>...getIPs called in here...
-        //
         var win = iframe.contentWindow;
         RTCPeerConnection = win.RTCPeerConnection
         || win.mozRTCPeerConnection
@@ -37,9 +32,6 @@
         optional: [{RtpDataChannels: true}]
       };
 
-      //firefox already has a default stun server in about:config
-      //    media.peerconnection.default_iceservers =
-      //    [{"url": "stun:stun.services.mozilla.com"}]
       var servers = undefined;
 
       //add same stun server for chrome
