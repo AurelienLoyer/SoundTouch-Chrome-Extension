@@ -1,33 +1,22 @@
 angular
   .module('app', [])
-  .config( [
-      '$compileProvider','$logProvider',
-      function( $compileProvider,$logProvider) {
-          //Image src
-          var currentImgSrcSanitizationWhitelist = $compileProvider.imgSrcSanitizationWhitelist();
-          var newImgSrcSanitizationWhiteList = currentImgSrcSanitizationWhitelist.toString().slice(0,-1)
-            + '|chrome-extension:'
-            +currentImgSrcSanitizationWhitelist.toString().slice(-1);
-          $compileProvider.imgSrcSanitizationWhitelist(newImgSrcSanitizationWhiteList);
-      }
+  .config([
+    '$compileProvider', '$logProvider',
+    function ($compileProvider, $logProvider) {
+      //Image src
+      var currentImgSrcSanitizationWhitelist = $compileProvider.imgSrcSanitizationWhitelist();
+      var newImgSrcSanitizationWhiteList = currentImgSrcSanitizationWhitelist.toString().slice(0, -1)
+        + '|chrome-extension:'
+        + currentImgSrcSanitizationWhitelist.toString().slice(-1);
+      $compileProvider.imgSrcSanitizationWhitelist(newImgSrcSanitizationWhiteList);
+    }
   ]);
 
 angular
   .module('app')
   .controller('RemoteController', RemoteController);
 
-
-/*ANALYTICS INTEGRATION*/
-var _gaq = _gaq || [];
-_gaq.push(['_setAccount', 'UA-75287631-1']);
-_gaq.push(['_trackPageview']);
-(function() {
-  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-  ga.src = 'https://ssl.google-analytics.com/ga.js';
-  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-})();
-
-function RemoteController($scope,$http,settingsService) {
+function RemoteController($scope, $http, settingsService) {
 
   var vm = this;
   vm.showSettings = false;
@@ -65,11 +54,11 @@ function RemoteController($scope,$http,settingsService) {
   defaultData();
 
   getData();
-  setInterval(function(){getData();}, 5000);
+  setInterval(function () { getData(); }, 5000);
 
-  function getData(){
-    settingsService.getDevice(function(data){
-      if(data && data.device){
+  function getData() {
+    settingsService.getDevice(function (data) {
+      if (data && data.device) {
         vm.device = data.device;
         getNowPlaying();
         getSources();
@@ -78,12 +67,12 @@ function RemoteController($scope,$http,settingsService) {
     });
   }
 
-  function openSettingIfnoDevice(){
-    if(!vm.device)
+  function openSettingIfnoDevice() {
+    if (!vm.device)
       toggleSettings();
   }
 
-  function defaultData(){
+  function defaultData() {
     clearInterval(timer);
     vm.art = "img/img_loader.gif";
     vm.track = "No SoundTouch Selected";
@@ -98,24 +87,23 @@ function RemoteController($scope,$http,settingsService) {
   //getSources
   //:8090/sources
   //TODO
-  function getSources(){
+  function getSources() {
 
-    if(!vm.device){
+    if (!vm.device) {
       defaultData();
       return;
     }
 
-    var url = 'http://'+vm.device.ipAddress+':8090/sources';
-    $http.get(url, {}).then(function(response) {
-      if (window.DOMParser)
-      {
+    var url = 'http://' + vm.device.ipAddress + ':8090/sources';
+    $http.get(url, {}).then(function (response) {
+      if (window.DOMParser) {
         parser = new DOMParser();
-        var xmlDoc = parser.parseFromString(response.data,"text/xml");
+        var xmlDoc = parser.parseFromString(response.data, "text/xml");
         var sources = xmlDoc.getElementsByTagName("sourceItem");
 
         vm.sources = [];
         for (var i = 0; i < sources.length; i++) {
-          var source = {};
+          var source = {};
           source.source = sources[i].getAttribute("source");
           source.status = sources[i].getAttribute("status");
           source.sourceAccount = sources[i].getAttribute("sourceAccount");
@@ -128,65 +116,65 @@ function RemoteController($scope,$http,settingsService) {
 
   //getVolume
   //:8090/volume
-  function getVolume(){
+  function getVolume() {
 
-    if(!vm.device){
+    if (!vm.device) {
       defaultData();
       return;
     }
 
-    var url = 'http://'+vm.device.ipAddress+':8090/volume';
-    $http.get(url, {}).then(function(response) {
-      if (window.DOMParser)
-      {
+    var url = 'http://' + vm.device.ipAddress + ':8090/volume';
+    $http.get(url, {}).then(function (response) {
+      if (window.DOMParser) {
         parser = new DOMParser();
-        var xmlDoc = parser.parseFromString(response.data,"text/xml");
+        var xmlDoc = parser.parseFromString(response.data, "text/xml");
         volume = xmlDoc.getElementsByTagName("targetvolume")[0].childNodes[0].nodeValue;
         vm.volumeBar = volume;
       }
     });
   }
 
-  function setVolume(event){
-    if(isNaN(event)){
+  function setVolume(event) {
+    if (isNaN(event)) {
       console.log(volume2set);
       vm.volumeBar = volume2set;
       //TODO
       // POST volume2set to SoundTouch
-      var url = 'http://'+vm.device.ipAddress+':8090/volume';
-      var data = '<?xml version="1.0" encoding="UTF-8" ?><volume>'+volume2set+'</volume>';
+      var url = 'http://' + vm.device.ipAddress + ':8090/volume';
+      var data = '<?xml version="1.0" encoding="UTF-8" ?><volume>' + volume2set + '</volume>';
       $http({
-          method: 'POST',
-          url: url,
-          data: data,
-          headers: { "Content-Type": 'application/xml' }
-      }).then(function(){
-        setTimeout(function() { getNowPlaying(); }, 500);
+        method: 'POST',
+        url: url,
+        data: data,
+        headers: { "Content-Type": 'application/xml' }
+      }).then(function () {
+        setTimeout(function () { getNowPlaying(); }, 500);
         //Analytics send pushed button
-        _gaq.push(['_trackEvent', 'volume slider', 'clicked']);
+        // gtag.push(['_trackEvent', 'volume slider', 'clicked']);
+        gtag("event", 'volume slider', 'clicked');
       });
-    }else{
+    } else {
       volume2set = event;
     }
   }
 
-  function getPresets(){
+  function getPresets() {
     //
-    var url = 'http://'+vm.device.ipAddress+':8090/presets';
-    $http.get(url, {}).then(function(response) {
-      if (window.DOMParser){
+    var url = 'http://' + vm.device.ipAddress + ':8090/presets';
+    $http.get(url, {}).then(function (response) {
+      if (window.DOMParser) {
         parser = new DOMParser();
-        var xmlDoc = parser.parseFromString(response.data,"text/xml");
+        var xmlDoc = parser.parseFromString(response.data, "text/xml");
         vm.presets = [];
         for (var i = 0; i < xmlDoc.getElementsByTagName("preset").length; i++) {
           var preset = xmlDoc.getElementsByTagName("preset")[i];
           vm.presets.push({
-            'id' : preset.getAttribute("id"),
-            'button' : 'PRESET_'+preset.getAttribute("id"),
-            'source' : preset.childNodes[0].getAttribute("source"),
-            'account' : preset.childNodes[0].getAttribute("sourceAccount"),
-            'isPresetable' : preset.childNodes[0].getAttribute("isPresetable"),
-            'type' : preset.childNodes[0].getAttribute("type"),
+            'id': preset.getAttribute("id"),
+            'button': 'PRESET_' + preset.getAttribute("id"),
+            'source': preset.childNodes[0].getAttribute("source"),
+            'account': preset.childNodes[0].getAttribute("sourceAccount"),
+            'isPresetable': preset.childNodes[0].getAttribute("isPresetable"),
+            'type': preset.childNodes[0].getAttribute("type"),
             'name': preset.getElementsByTagName("itemName")[0].childNodes[0].nodeValue
           });
         }
@@ -195,69 +183,68 @@ function RemoteController($scope,$http,settingsService) {
   }
 
   //Now Playing display
-  function getNowPlaying(){
+  function getNowPlaying() {
 
-    settingsService.getDevice(function(data){
+    settingsService.getDevice(function (data) {
       vm.device = data.device;
     });
 
-    if(!vm.device){
+    if (!vm.device) {
       defaultData();
       return;
     }
 
-    var url = 'http://'+vm.device.ipAddress+':8090/now_playing';
-    $http.get(url, {}).then(function(response) {
-      if (window.DOMParser)
-      {
-        parser=new DOMParser();
-        var xmlDoc = parser.parseFromString(response.data,"text/xml");
-        if(xmlDoc.getElementsByTagName("track")[0]){
+    var url = 'http://' + vm.device.ipAddress + ':8090/now_playing';
+    $http.get(url, {}).then(function (response) {
+      if (window.DOMParser) {
+        parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(response.data, "text/xml");
+        if (xmlDoc.getElementsByTagName("track")[0]) {
 
           vm.buttonStart = false;
 
           vm.source = xmlDoc.getElementsByTagName("ContentItem")[0].getAttribute("source");
           var playStatus = xmlDoc.getElementsByTagName("playStatus")[0].childNodes[0].nodeValue;
 
-          if(playStatus == "PAUSE_STATE"){
+          if (playStatus == "PAUSE_STATE") {
             //ico play
             vm.playStatus = 'fa-play';
-          }else if(playStatus == "PLAY_STATE"){
+          } else if (playStatus == "PLAY_STATE") {
             //ico pause
             vm.playStatus = 'fa-pause';
           }
 
-          if(vm.source == "BLUETOOTH"){
+          if (vm.source == "BLUETOOTH") {
             vm.track = xmlDoc.getElementsByTagName("stationName")[0].childNodes[0].nodeValue;
             vm.art = "img/bluetooth_bg.jpg";
             vm.artist = "__";
             vm.album = "_____";
-          }else{
+          } else {
             vm.track = xmlDoc.getElementsByTagName("track")[0].childNodes[0].nodeValue;
-            vm.artist  = xmlDoc.getElementsByTagName("artist")[0].childNodes[0].nodeValue;
+            vm.artist = xmlDoc.getElementsByTagName("artist")[0].childNodes[0].nodeValue;
             vm.album = xmlDoc.getElementsByTagName("album")[0].childNodes[0].nodeValue;
             vm.art = xmlDoc.getElementsByTagName("art")[0].childNodes[0].nodeValue;
-            if(xmlDoc.getElementsByTagName("rating") && xmlDoc.getElementsByTagName("rating")[0])
+            if (xmlDoc.getElementsByTagName("rating") && xmlDoc.getElementsByTagName("rating")[0])
               vm.rating = xmlDoc.getElementsByTagName("rating")[0].childNodes[0].nodeValue;
             vm.itemName = xmlDoc.getElementsByTagName("itemName")[0].childNodes[0].nodeValue;
             time = xmlDoc.getElementsByTagName("time")[0].childNodes[0].nodeValue;
             totalTime = xmlDoc.getElementsByTagName("time")[0].getAttribute("total");
           }
 
-          if(vm.rating == 'UP'){
+          if (vm.rating == 'UP') {
             vm.ratingClass = "fa-heart";
-          }else{
+          } else {
             vm.ratingClass = "fa-heart-o";
           }
 
           getVolume();
           clearInterval(timer);
-          if(vm.source != "BLUETOOTH"){
-            timer = setInterval(function() {Horloge();}, 1000);
+          if (vm.source != "BLUETOOTH") {
+            timer = setInterval(function () { Horloge(); }, 1000);
           }
 
-        }else{
-          if(xmlDoc.getElementsByTagName("ContentItem")[0].getAttribute("source") == 'STANDBY'){
+        } else {
+          if (xmlDoc.getElementsByTagName("ContentItem")[0].getAttribute("source") == 'STANDBY') {
             vm.track = "SoundTouch on Standby";
             vm.artist = "";
             vm.itemName = "No playlist selected"
@@ -269,7 +256,7 @@ function RemoteController($scope,$http,settingsService) {
             vm.timeInfo = false;
             vm.progressBar = false;
             clearInterval(timer);
-          }else if(xmlDoc.getElementsByTagName("ContentItem")[0].getAttribute("source") == 'INVALID_SOURCE'){
+          } else if (xmlDoc.getElementsByTagName("ContentItem")[0].getAttribute("source") == 'INVALID_SOURCE') {
             vm.art = "img/img_loader.gif";
             vm.track = "No Music Source Selected";
             vm.artist = "Choose playlist !";
@@ -281,7 +268,7 @@ function RemoteController($scope,$http,settingsService) {
           }
         }
       }
-    },function(data) {
+    }, function (data) {
       vm.art = "img/img_loader.gif";
       vm.track = "No Music Source Selected";
       vm.artist = "Choose playlist !";
@@ -295,22 +282,22 @@ function RemoteController($scope,$http,settingsService) {
 
   //Horloge
   function Horloge() {
-    if(vm.playStatus == "fa-pause"){
+    if (vm.playStatus == "fa-pause") {
       time++;
     }
-    if(time % 10 == 0){
+    if (time % 10 == 0) {
       getNowPlaying();
     }
-    var minutes = (time - Math.floor(time / 60) * 60); if(minutes < 10){minutes = "0"+minutes}
-    var minutesTotal = (totalTime - Math.floor(totalTime / 60) * 60); if(minutesTotal < 10){minutesTotal = "0"+minutesTotal}
-    var divTimeMessage = Math.floor(time / 60)+":"+minutes+" / "+Math.floor(totalTime / 60)+":"+minutesTotal;
-    var pourcent = time/totalTime*100;
+    var minutes = (time - Math.floor(time / 60) * 60); if (minutes < 10) { minutes = "0" + minutes }
+    var minutesTotal = (totalTime - Math.floor(totalTime / 60) * 60); if (minutesTotal < 10) { minutesTotal = "0" + minutesTotal }
+    var divTimeMessage = Math.floor(time / 60) + ":" + minutes + " / " + Math.floor(totalTime / 60) + ":" + minutesTotal;
+    var pourcent = time / totalTime * 100;
     //Get news informations
-    if (time >= totalTime){
+    if (time >= totalTime) {
       clearInterval(timer);
       getNowPlaying();
     }
-    $scope.$apply(function(){
+    $scope.$apply(function () {
       vm.progressBar = pourcent;
       vm.timeInfo = divTimeMessage;
     });
@@ -319,82 +306,84 @@ function RemoteController($scope,$http,settingsService) {
   //settings_btn.addEventListener('click', function() {openSettingsPage();});
   //settings_btn2.addEventListener('click', function() {openSettingsPage();});
 
-  function openSettingsPage(){
+  function openSettingsPage() {
     if (chrome.runtime.openOptionsPage) {
-     chrome.runtime.openOptionsPage();
+      chrome.runtime.openOptionsPage();
     } else {
-     window.open(chrome.runtime.getURL('options/options.html'));
+      window.open(chrome.runtime.getURL('options/options.html'));
     }
   }
 
-  function pushUpButton(button){
-    if(!vm.device)
+  function pushUpButton(button) {
+    if (!vm.device)
       return;
 
-    if(button == "FAVORITE"){
-      if(vm.rating == 'UP')
+    if (button == "FAVORITE") {
+      if (vm.rating == 'UP')
         button = "REMOVE_FAVORITE";
       else
         button = "ADD_FAVORITE";
     }
-    var url = 'http://'+vm.device.ipAddress+':8090/key';
-    var data = '<?xml version="1.0" encoding="UTF-8" ?><key state="release" sender="Gabbo">'+button+'</key>';
+    var url = 'http://' + vm.device.ipAddress + ':8090/key';
+    var data = '<?xml version="1.0" encoding="UTF-8" ?><key state="release" sender="Gabbo">' + button + '</key>';
     $http({
-        method: 'POST',
-        url: url,
-        data: data,
-        headers: { "Content-Type": 'application/xml' }
-    }).then(function(){
+      method: 'POST',
+      url: url,
+      data: data,
+      headers: { "Content-Type": 'application/xml' }
+    }).then(function () {
       getVolume();
-      setTimeout(function() { getNowPlaying(); }, 500);
-      if(button == "STANDBY") setTimeout(function() { pushDownButton('PLAY'); }, 2500);
+      setTimeout(function () { getNowPlaying(); }, 500);
+      if (button == "STANDBY") setTimeout(function () { pushDownButton('PLAY'); }, 2500);
       //Analytics send pushed button
-      _gaq.push(['_trackEvent', button, 'clicked']);
+      // gtag.push(['_trackEvent', button, 'clicked']);
+      gtag("event", button, 'clicked');
     });
   }
 
-  function pushDownButton(button){
-    if(!vm.device)
+  function pushDownButton(button) {
+    if (!vm.device)
       return;
 
-    if(button == "FAVORITE"){
-      if(vm.rating == 'UP')
+    if (button == "FAVORITE") {
+      if (vm.rating == 'UP')
         button = "REMOVE_FAVORITE";
       else
         button = "ADD_FAVORITE";
     }
-    var url = 'http://'+vm.device.ipAddress+':8090/key';
-    var data = '<?xml version="1.0" encoding="UTF-8" ?><key state="press" sender="Gabbo">'+button+'</key>';
+    var url = 'http://' + vm.device.ipAddress + ':8090/key';
+    var data = '<?xml version="1.0" encoding="UTF-8" ?><key state="press" sender="Gabbo">' + button + '</key>';
     $http({
-        method: 'POST',
-        url: url,
-        data: data,
-        headers: { "Content-Type": 'application/xml' }
-    }).then(function(){
+      method: 'POST',
+      url: url,
+      data: data,
+      headers: { "Content-Type": 'application/xml' }
+    }).then(function () {
       getVolume();
-      setTimeout(function() { getNowPlaying(); }, 500);
-      if(button == "STANDBY") setTimeout(function() { pushDownButton('PLAY'); }, 2500);
+      setTimeout(function () { getNowPlaying(); }, 500);
+      if (button == "STANDBY") setTimeout(function () { pushDownButton('PLAY'); }, 2500);
       //Analytics send pushed button
-      _gaq.push(['_trackEvent', button, 'clicked']);
+      // gtag.push(['_trackEvent', button, 'clicked']);
+      gtag("event", button, 'clicked');
     });
   }
 
-  function toggleSettings(){
+  function toggleSettings() {
     vm.showSettings = !vm.showSettings;
-    settingsService.getDevice(function(data){
+    settingsService.getDevice(function (data) {
       vm.device = data.device;
       getNowPlaying();
     });
   }
 
-  function toggleSources(){
+  function toggleSources() {
 
-    if(!vm.device)
+    if (!vm.device)
       return;
 
-    if(vm.showSources == "showSources"){
+    if (vm.showSources == "showSources") {
       vm.showSources = "";
-    }else{
+    } else {
       vm.showSources = "showSources";
     }
   }

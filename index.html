@@ -7,6 +7,17 @@
     <link href='css/opensans.css' rel='stylesheet' type='text/css'>
     <link href='css/raleway.css' rel='stylesheet' type='text/css'>
     <link href="css/style.css" rel="stylesheet">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-J2N438T3XV"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-J2N438T3XV');
+    </script>
+
   </head>
   <body ng-app="app">
     <div id="main" ng-class="remote.showSettings ? 'moveUp': ''" ng-controller="RemoteController as remote">
